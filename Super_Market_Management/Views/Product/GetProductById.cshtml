@@ -1,0 +1,225 @@
+﻿@model Super_Market_Management.Models.Product
+@{
+    ViewBag.Title = Model.ProductName + " Details";
+    var primaryImage = Model.ProductImages?.FirstOrDefault(i => i.IsPrimary) ?? Model.ProductImages?.FirstOrDefault();
+}
+
+<main class="container mt-4">
+    <div class="row g-4">
+        <!-- Product Images Section -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-3">
+                <div class="card-body p-3 text-center">
+                    @if (!string.IsNullOrEmpty(Model.ProductImage1))
+                    {
+                        <img id="mainProductImage" src="@Model.ProductImage1"
+                             alt="@Model.ProductName"
+                             class="img-fluid rounded"
+                             style="max-height: 400px; object-fit: contain;" />
+                    }
+                    else
+                    {
+                        <div class="no-image-placeholder bg-light d-flex align-items-center justify-content-center"
+                             style="height: 400px;">
+                            <i class="bi bi-image text-muted fs-1"></i>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Thumbnail Gallery -->
+            <div class="d-flex flex-wrap gap-2">
+                @if (!string.IsNullOrEmpty(Model.ProductImage1))
+                {
+                    <img src="@Model.ProductImage1"
+                         class="img-thumbnail cursor-pointer border-primary"
+                         style="width: 80px; height: 80px; object-fit: cover;"
+                         onclick="document.getElementById('mainProductImage').src = this.src"
+                         alt="Product thumbnail" />
+                }
+                @if (!string.IsNullOrEmpty(Model.ProductImage2))
+                {
+                    <img src="@Model.ProductImage2"
+                         class="img-thumbnail cursor-pointer"
+                         style="width: 80px; height: 80px; object-fit: cover;"
+                         onclick="document.getElementById('mainProductImage').src = this.src"
+                         alt="Product thumbnail" />
+                }
+                @if (!string.IsNullOrEmpty(Model.ProductImage3))
+                {
+                    <img src="@Model.ProductImage3"
+                         class="img-thumbnail cursor-pointer"
+                         style="width: 80px; height: 80px; object-fit: cover;"
+                         onclick="document.getElementById('mainProductImage').src = this.src"
+                         alt="Product thumbnail" />
+                }
+            </div>
+        </div>
+
+        <!-- Product Info Section -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <!-- Basic Info -->
+                    <h2 class="mb-2">@Model.ProductName</h2>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <h3 class="text-success mb-0">₹@Model.ProductPrice</h3>
+                        @if (Model.CostPrice.HasValue)
+                        {
+                            <small class="text-muted text-decoration-line-through">₹@Model.CostPrice.Value</small>
+                        }
+                        @if (Model.ProductStock <= (Model.ReorderLevel ?? 0))
+                        {
+                            <span class="badge bg-danger">Low Stock</span>
+                        }
+                    </div>
+
+                    <!-- SKU/Barcode -->
+                    <div class="d-flex gap-4 mb-3">
+                        @if (!string.IsNullOrEmpty(Model.Sku))
+                        {
+                            <div>
+                                <small class="text-muted d-block">SKU</small>
+                                <strong>@Model.Sku</strong>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Barcode))
+                        {
+                            <div>
+                                <small class="text-muted d-block">Barcode</small>
+                                <strong>@Model.Barcode</strong>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Stock Status -->
+                    <div class="mb-4">
+                        <div class="progress" style="height: 8px;">
+                            @{
+                                double stockPercentage = 0;
+                                int maxStock = Math.Max(Model.ProductStock, Model.ReorderLevel ?? 50);
+
+                                if (maxStock > 0)
+                                {
+                                    stockPercentage = Math.Min(100, (Model.ProductStock / (double)maxStock) * 100);
+                                }
+                            }
+                            <div class="progress-bar @(Model.ProductStock > 0 ? "bg-success" : "bg-danger")"
+                                 role="progressbar"
+                                 style="width: @stockPercentage%"
+                                 aria-valuenow="@stockPercentage"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100"></div>
+                        </div>
+                        <small class="text-muted">
+                            @(Model.ProductStock > 0 ? $"{Model.ProductStock} available in stock" : "Out of stock")
+                            @if (Model.ReorderLevel.HasValue)
+                            {
+                                <span> | Reorder level: @Model.ReorderLevel</span>
+                            }
+                        </small>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2">Description</h5>
+                        <p>@Model.ProductDescription</p>
+                    </div>
+
+                    <!-- Additional Details Accordion -->
+                    <div class="accordion mb-4" id="productDetailsAccordion">
+                        @if (!string.IsNullOrEmpty(Model.ProductFeatures))
+                        {
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#featuresCollapse">
+                                        Features
+                                    </button>
+                                </h2>
+                                <div id="featuresCollapse" class="accordion-collapse collapse" data-bs-parent="#productDetailsAccordion">
+                                    <div class="accordion-body">
+                                        @Model.ProductFeatures
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.ProductSpecifications))
+                        {
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#specsCollapse">
+                                        Specifications
+                                    </button>
+                                </h2>
+                                <div id="specsCollapse" class="accordion-collapse collapse" data-bs-parent="#productDetailsAccordion">
+                                    <div class="accordion-body">
+                                        @Model.ProductSpecifications
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Add more accordion items for other fields as needed -->
+                    </div>
+
+                    <!-- Meta Information -->
+                    <div class="text-muted small">
+                        <div class="d-flex flex-wrap gap-3">
+                            <div>
+                                <span class="fw-semibold">Category:</span>
+                                <span>@Model.Category?.CategoryName</span>
+                            </div>
+                            <div>
+                                <span class="fw-semibold">Added:</span>
+                                <span>@Model.CreationDate?.ToString("dd MMM yyyy")</span>
+                            </div>
+                            @if (Model.ModifyDate.HasValue)
+                            {
+                                <div>
+                                    <span class="fw-semibold">Last Updated:</span>
+                                    <span>@Model.ModifyDate?.ToString("dd MMM yyyy")</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2 mt-4">
+                        @if(Context.Session.GetString("UserRole") == "Admin"){
+                            <a asp-action="AddEditProduct" asp-route-id="@Model.ProductId" class="btn btn-primary">
+                                <i class="bi bi-pencil"></i> Edit Product
+                            </a>
+                            <a asp-action="GetAllProduct" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to List
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-action="GetAllProductCustomer" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to List
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+
+@section Scripts {
+    <script>
+        // Simple image gallery functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Highlight clicked thumbnail
+            document.querySelectorAll('.img-thumbnail').forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    document.querySelectorAll('.img-thumbnail').forEach(t => t.classList.remove('border-primary'));
+                    this.classList.add('border-primary');
+                });
+            });
+        });
+    </script>
+}

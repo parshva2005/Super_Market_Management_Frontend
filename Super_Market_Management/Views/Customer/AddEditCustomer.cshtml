@@ -1,0 +1,210 @@
+﻿@model Super_Market_Management.Models.Customer
+@{
+    ViewBag.Title = Model.CustomerId == 0 ? "Add New Customer" : "Edit Customer";
+    var isEditMode = Model.CustomerId != 0;
+    var showToast = TempData["OperationSuccess"] != null && (bool)TempData["OperationSuccess"];
+    var toastMessage = TempData["ToastMessage"] as string;
+}
+
+<div class="container dark-section mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h5 mb-0">
+                <i class="bi @(isEditMode ? "bi-pencil-square" : "bi-plus-circle") me-2"></i>
+                @ViewBag.Title
+            </h2>
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Save" asp-controller="Customer" method="post" class="needs-validation" novalidate>
+                <input type="hidden" asp-for="CustomerId" />
+                <input type="hidden" asp-for="RegistrationDate" />
+
+                <!-- Form Sections -->
+                <div class="row g-3">
+                    <!-- Basic Information Section -->
+                    <div class="col-md-8">
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Basic Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Customer Name -->
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label">
+                                        <i class="bi bi-person-fill text-primary me-2"></i>Full Name
+                                    </label>
+                                    <input asp-for="Name" class="form-control" required />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                    <div class="invalid-feedback">Please provide customer name.</div>
+                                </div>
+
+                                <!-- Contact Information -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="Email" class="form-label">
+                                                <i class="bi bi-envelope-fill text-primary me-2"></i>Email
+                                            </label>
+                                            <input asp-for="Email" type="email" class="form-control" />
+                                            <span asp-validation-for="Email" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="PhoneNumber" class="form-label">
+                                                <i class="bi bi-telephone-fill text-primary me-2"></i>Phone Number
+                                            </label>
+                                            <input asp-for="PhoneNumber" class="form-control" required />
+                                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                            <div class="invalid-feedback">Please provide phone number.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Address -->
+                                <div class="mb-3">
+                                    <label asp-for="Address" class="form-label">
+                                        <i class="bi bi-geo-alt-fill text-primary me-2"></i>Address
+                                    </label>
+                                    <textarea asp-for="Address" class="form-control" rows="3"></textarea>
+                                    <span asp-validation-for="Address" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Management Section -->
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Account Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Status -->
+                                <div class="mb-3">
+                                    <label asp-for="IsActive" class="form-label">
+                                        <i class="bi bi-toggle-on text-primary me-2"></i>Status
+                                    </label>
+                                    <select asp-for="IsActive" class="form-select">
+                                        <option value="true">Active</option>
+                                        <option value="false">Inactive</option>
+                                    </select>
+                                    <span asp-validation-for="IsActive" class="text-danger"></span>
+                                </div>
+
+                                <!-- Registration Info -->
+                                @if (isEditMode)
+                                {
+                                    <div class="border-top pt-3 mt-3">
+                                        <div class="small text-muted">
+                                            <div>
+                                                <i class="bi bi-calendar-plus me-1"></i>
+                                                Registered: @Model.RegistrationDate.ToString("dd MMM yyyy")
+                                            </div>
+                                            <div>
+                                                <i class="bi bi-cart-fill me-1"></i>
+                                                Orders: @Model.Orders.Count
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div>
+                        <a asp-action="GetAllCustomer" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Back to List
+                        </a>
+
+                        @if (isEditMode)
+                        {
+                            <button type="button" class="btn btn-outline-danger ms-2"
+                                    data-bs-toggle="modal" data-bs-target="#deactivateModal">
+                                <i class="bi bi-person-x me-1"></i> Deactivate
+                            </button>
+                        }
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi @(isEditMode ? "bi-check-circle" : "bi-plus-circle") me-1"></i>
+                        @(isEditMode ? "Update Customer" : "Add Customer")
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Deactivate Confirmation Modal -->
+<div class="modal fade" id="deactivateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Deactivate Customer</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to deactivate this customer?</p>
+                <div class="alert alert-warning mt-2">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    Customer will be marked as inactive but their order history will be preserved.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a asp-action="Deactivate" asp-route-id="@Model.CustomerId" class="btn btn-danger">
+                    <i class="bi bi-person-x me-1"></i> Confirm Deactivate
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+    <div id="operationToast" class="toast text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span id="toastMessage">@toastMessage</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Form Validation
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+
+            // Toast Notification
+            const toastEl = document.getElementById("operationToast");
+            if (toastEl && '@showToast' === 'True') {
+                const toast = new bootstrap.Toast(toastEl);
+                toast.show();
+
+                setTimeout(() => {
+                    toast.hide();
+                }, 5000);
+            }
+        });
+    </script>
+}

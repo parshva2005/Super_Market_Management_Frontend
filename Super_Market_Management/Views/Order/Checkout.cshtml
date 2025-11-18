@@ -1,0 +1,233 @@
+﻿@model List<Super_Market_Management.Models.Cart>
+@{
+    ViewData["Title"] = "Checkout";
+    Layout = "_LayoutCustomer";
+
+    decimal cartTotal = Model?.Sum(item => item.ProductQuantity * (item.Product?.ProductPrice ?? 0)) ?? 0;
+    decimal taxAmount = cartTotal * 0.18m;
+    decimal finalTotal = cartTotal + taxAmount;
+}
+
+@if (TempData["Warning"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        @TempData["Warning"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Checkout</h2>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-cart-x text-muted" style="font-size: 4rem;"></i>
+            <h4 class="mt-3">Your cart is empty</h4>
+            <p class="text-muted">Please add items to your cart before proceeding to checkout</p>
+            <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-primary me-2">
+                <i class="bi bi-arrow-left"></i> Back to Cart
+            </a>
+            <a asp-controller="Product" asp-action="GetAllProductCustomer" class="btn btn-primary">
+                <i class="bi bi-bag"></i> Continue Shopping
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row me-1">
+            <!-- Order Summary -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var item in Model)
+                        {
+                            var itemTotal = item.ProductQuantity * (item.Product?.ProductPrice ?? 0);
+
+                            <div class="row mb-3 border-bottom pb-3 align-items-center">
+                                <div class="col-2">
+                                    @if (!string.IsNullOrEmpty(item.Product?.ProductImage1))
+                                    {
+                                        <img src="@item.Product.ProductImage1" class="img-fluid rounded"
+                                             alt="@item.Product?.ProductName" style="max-height: 60px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                             style="width: 60px; height: 60px;">
+                                            <i class="bi bi-image text-muted"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="col-6">
+                                    <h6 class="mb-1">@item.Product?.ProductName</h6>
+                                    <small class="text-muted">@item.Product?.Category?.CategoryName</small>
+                                    <div class="mt-1">
+                                        <small class="text-success fw-bold">₹@(item.Product?.ProductPrice ?? 0) each</small>
+                                    </div>
+                                </div>
+                                <div class="col-2 text-center">
+                                    <span class="fw-bold">Qty: @item.ProductQuantity</span>
+                                </div>
+                                <div class="col-2 text-end">
+                                    <strong class="text-primary">₹@itemTotal</strong>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="row mt-4">
+                            <div class="col-8">
+                                <strong>Subtotal (@Model.Sum(item => item.ProductQuantity) items):</strong>
+                            </div>
+                            <div class="col-4 text-end">
+                                <strong>₹@cartTotal.ToString("N2")</strong>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-8">
+                                <strong>Tax (18%):</strong>
+                            </div>
+                            <div class="col-4 text-end">
+                                <strong>₹@taxAmount.ToString("N2")</strong>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row mt-2">
+                            <div class="col-8">
+                                <h5>Total Amount:</h5>
+                            </div>
+                            <div class="col-4 text-end">
+                                <h5 class="text-primary">₹@finalTotal.ToString("N2")</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="card mt-3 ">
+                    <div class="card-header">
+                        <h5>Payment Method</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="paymentMethod"
+                                   id="cod" value="COD" checked>
+                            <label class="form-check-label" for="cod">
+                                <i class="bi bi-cash-coin"></i> Cash on Delivery
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Checkout Action -->
+            <div class="col-lg-4">
+                <div class="card sticky-top" style="top: 20px;">
+                    <div class="card-header">
+                        <h5>Complete Order</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button id="placeOrderBtn" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> Place Order
+                            </button>
+                            <button id="buyNowBtn" class="btn btn-success btn-lg">
+                                <i class="bi bi-lightning"></i> Buy Now
+                            </button>
+                        </div>
+
+                        <!-- Order Summary in Sidebar -->
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <h6 class="mb-3">Order Summary</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Items (@Model.Sum(item => item.ProductQuantity)):</span>
+                                <span>₹@cartTotal.ToString("N2")</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax:</span>
+                                <span>₹@taxAmount.ToString("N2")</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>Total:</strong>
+                                <strong class="text-primary">₹@finalTotal.ToString("N2")</strong>
+                            </div>
+                        </div>
+
+                        <!-- Security Badge -->
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                <i class="bi bi-shield-check text-success"></i>
+                                Secure checkout · 100% Protected
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    @if (Model != null && Model.Any())
+    {
+        <script>
+            $(document).ready(function() {
+                $('#placeOrderBtn, #buyNowBtn').click(function() {
+                    const isBuyNow = $(this).attr('id') === 'buyNowBtn';
+
+                    const checkoutData = {
+                        CustomerId: 1, // You'd typically get this from user session or form
+                        TotalAmount: @cartTotal,
+                        TaxAmount: @taxAmount,
+                        DiscountAmount: 0,
+                        PaymentMethod: $('input[name="paymentMethod"]:checked').val(),
+                        Items: [
+                            @foreach (var item in Model)
+                            {
+                                    <text>
+                                    {
+                                        ProductId: @item.ProductId,
+                                        Quantity: @item.ProductQuantity,
+                                        Price: @(item.Product?.ProductPrice ?? 0)
+                                    },
+                                    </text>
+                            }
+                        ]
+                    };
+
+                    // Show loading state
+                    $(this).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...');
+                    $(this).prop('disabled', true);
+
+                    $.ajax({
+                        url: '/Order/ProcessOrder',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(checkoutData),
+                        success: function(response) {
+                            if (response.success) {
+                                window.location.href = '/Order/Confirmation?orderId=' +
+                                    response.orderId + '&orderNumber=' + response.orderNumber;
+                            } else {
+                                alert('Error: ' + response.message);
+                                // Reset buttons
+                                $('#placeOrderBtn').html('<i class="bi bi-check-circle"></i> Place Order').prop('disabled', false);
+                                $('#buyNowBtn').html('<i class="bi bi-lightning"></i> Buy Now').prop('disabled', false);
+                            }
+                        },
+                        error: function() {
+                            alert('Network error. Please try again.');
+                            // Reset buttons
+                            $('#placeOrderBtn').html('<i class="bi bi-check-circle"></i> Place Order').prop('disabled', false);
+                            $('#buyNowBtn').html('<i class="bi bi-lightning"></i> Buy Now').prop('disabled', false);
+                        }
+                    });
+                });
+            });
+        </script>
+    }
+}

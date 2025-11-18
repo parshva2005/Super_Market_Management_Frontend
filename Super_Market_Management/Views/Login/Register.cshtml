@@ -1,0 +1,95 @@
+﻿@model Super_Market_Management.Models.User
+@{
+    ViewData["Title"] = "Register";
+    Layout = "_LayoutAuth"; 
+}
+
+<div class="auth-card">
+    <div class="auth-header">
+        <h2><i class="fas fa-user-plus me-2"></i> Create Account</h2>
+        <p class="mb-0">Join our supermarket management system</p>
+    </div>
+
+    <div class="auth-body">
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                @ViewBag.Error
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show">
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <form asp-action="Register">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="input-icon">
+                        <i class="fas fa-user"></i>
+                        <input asp-for="UserName" class="form-control" placeholder="Username" />
+                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="input-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input asp-for="UserEmailAddress" class="form-control" placeholder="Email Address" />
+                        <span asp-validation-for="UserEmailAddress" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="input-icon">
+                        <i class="fas fa-lock"></i>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Password" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="input-icon">
+                        <i class="fas fa-lock"></i>
+                        <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm Password" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+             
+            <div class="mb-3">
+                <div class="input-icon">
+                    <i class="fas fa-phone"></i>
+                    <input asp-for="UserMobileNumber" class="form-control" placeholder="Phone Number" />
+                    <span asp-validation-for="UserMobileNumber" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="input-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <textarea asp-for="UserAddress" class="form-control" placeholder="Address" rows="2"></textarea>
+                    <span asp-validation-for="UserAddress" class="text-danger"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-auth w-100 text-white mb-3">
+                <i class="fas fa-user-plus me-2"></i> Register
+            </button>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a asp-action="Login">Sign in</a></p>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

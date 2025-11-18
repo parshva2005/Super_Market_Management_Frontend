@@ -1,0 +1,425 @@
+﻿@model List<Product>
+@{
+    var activeProducts = Model.Where(p => !p.IsRemoved.GetValueOrDefault()).ToList();
+    var removedProducts = Model.Where(p => p.IsRemoved.GetValueOrDefault()).ToList();
+    var showToast = TempData["DeleteSuccess"] != null && (bool)TempData["DeleteSuccess"];
+    var showRestoreToast = TempData["Success"] != null;
+    var showRemoved = ViewBag.ShowRemoved ?? false;
+}
+
+<main id="main" class="main mt-2 dark-section">
+    <input type="hidden" value="@Context.Session.GetInt32("UserId")" />
+    <section class="section">
+        <div class="container-fluid">
+            <div class="card shadow bg-light">
+                <div class="card-body">
+                    <!-- Title & Action Buttons - Moved ABOVE the filters -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h4 class="text-dark mb-0">🛍️ Product Inventory</h4>
+                            <p class="text-muted mb-0">
+                                @if (showRemoved)
+                                {
+                                    <text>Showing @removedProducts.Count removed products</text>
+                                }
+                                else
+                                {
+                                    <text>Showing @activeProducts.Count active products</text>
+                                }
+                            </p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <!-- Toggle Removed Products Button -->
+                            @if (showRemoved)
+                            {
+                                <a asp-action="GetAllProduct" asp-route-showRemoved="false" class="btn btn-primary">
+                                    <i class="bi bi-eye"></i> View Active Products
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-action="GetAllProduct" asp-route-showRemoved="true" class="btn btn-warning">
+                                    <i class="bi bi-archive"></i> View Removed Products
+                                </a>
+                            }
+                            <a asp-action="AddEditProduct" class="btn btn-success">
+                                <i class="bi bi-plus-lg"></i> Add Product
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Filter/Sort Row -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-body py-3">
+                                    <form id="filterForm" method="get" asp-action="GetAllProduct">
+                                        <div class="row align-items-center g-3">
+                                            <div class="col-md-3">
+                                                <label class="form-label small text-muted mb-1">Category</label>
+                                                <select class="form-select form-select-sm" name="categoryId" id="categoryFilter">
+                                                    <option value="">All Categories</option>
+                                                    @foreach (var category in ViewBag.Categories)
+                                                    {
+                                                        <option value="@category.CategoryId" selected="@(ViewBag.SelectedCategoryId?.ToString() == category.CategoryId.ToString())">
+                                                            @category.CategoryName
+                                                        </option>
+                                                    }
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-2">
+                                                <label class="form-label small text-muted mb-1">Sort By</label>
+                                                <select class="form-select form-select-sm" name="sortBy" id="sortBy">
+                                                    <option value="name_asc" selected="@(ViewBag.SortBy == "name_asc")">Name (A-Z)</option>
+                                                    <option value="name_desc" selected="@(ViewBag.SortBy == "name_desc")">Name (Z-A)</option>
+                                                    <option value="price_asc" selected="@(ViewBag.SortBy == "price_asc")">Price (Low to High)</option>
+                                                    <option value="price_desc" selected="@(ViewBag.SortBy == "price_desc")">Price (High to Low)</option>
+                                                    <option value="newest" selected="@(ViewBag.SortBy == "newest")">Newest First</option>
+                                                    <option value="oldest" selected="@(ViewBag.SortBy == "oldest")">Oldest First</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-2">
+                                                <label class="form-label small text-muted mb-1">Price Range</label>
+                                                <select class="form-select form-select-sm" name="priceRange" id="priceFilter">
+                                                    <option value="">All Prices</option>
+                                                    <option value="0-50" selected="@(ViewBag.PriceRange == "0-50")">Under ₹50</option>
+                                                    <option value="50-100" selected="@(ViewBag.PriceRange == "50-100")">₹50 - ₹100</option>
+                                                    <option value="100-500" selected="@(ViewBag.PriceRange == "100-500")">₹100 - ₹500</option>
+                                                    <option value="500-1000" selected="@(ViewBag.PriceRange == "500-1000")">₹500 - ₹1000</option>
+                                                    <option value="1000+" selected="@(ViewBag.PriceRange == "1000+")">Over ₹1000</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-2">
+                                                <label class="form-label small text-muted mb-1">Status</label>
+                                                <select class="form-select form-select-sm" name="showRemoved" id="statusFilter">
+                                                    <option value="false" selected="@(!showRemoved)">Active</option>
+                                                    <option value="true" selected="@(showRemoved)">Removed</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <label class="form-label small text-muted mb-1 d-block">Actions</label>
+                                                <div class="d-flex gap-2">
+                                                    <button type="submit" class="btn btn-primary btn-sm">
+                                                        <i class="bi bi-filter"></i> Apply Filters
+                                                    </button>
+                                                    <a href="@Url.Action("GetAllProduct")" class="btn btn-outline-secondary btn-sm">
+                                                        <i class="bi bi-x-circle"></i> Clear
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Hidden search field -->
+                                        <input type="hidden" name="searchTerm" id="hiddenSearchTerm" value="@ViewBag.SearchTerm" />
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search Header -->
+                    <div class="row mb-4 align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="mb-0">Search Products</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <form method="get" asp-action="GetAllProduct">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Search products..."
+                                           name="searchTerm" value="@ViewBag.SearchTerm" id="searchInput">
+                                    <button class="btn btn-primary" type="submit" id="searchButton">
+                                        <i class="bi bi-search"></i> Search
+                                    </button>
+                                </div>
+                                <!-- Keep existing filters -->
+                                <input type="hidden" name="categoryId" value="@ViewBag.SelectedCategoryId" />
+                                <input type="hidden" name="sortBy" value="@ViewBag.SortBy" />
+                                <input type="hidden" name="priceRange" value="@ViewBag.PriceRange" />
+                                <input type="hidden" name="showRemoved" value="@showRemoved.ToString()" />
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Removed Products Section -->
+                    @if (showRemoved)
+                    {
+                        <div class="alert alert-warning mb-4">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Viewing removed products. These products are not visible to customers.
+                        </div>
+
+                        @if (!removedProducts.Any())
+                        {
+                            <div class="text-center py-5">
+                                <i class="bi bi-archive fs-1 text-muted"></i>
+                                <h5 class="mt-3">No removed products found</h5>
+                                <a asp-action="GetAllProduct" asp-route-showRemoved="false" class="btn btn-primary mt-2">
+                                    Back to Active Products
+                                </a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row g-4">
+                                @foreach (var product in removedProducts)
+                                {
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                        <div class="card product-card h-100 shadow-sm position-relative border-warning">
+                                            <!-- Removed Badge -->
+                                            <span class="badge bg-warning position-absolute top-0 end-0 m-2">
+                                                <i class="bi bi-archive"></i> Removed
+                                            </span>
+
+                                            <!-- Product Image -->
+                                            <div class="product-image-container">
+                                                @if (!string.IsNullOrEmpty(product.ProductImage1))
+                                                {
+                                                    <img src="@product.ProductImage1" class="card-img-top"
+                                                         alt="@product.ProductName"
+                                                         style="height: 180px; object-fit: cover; opacity: 0.7;">
+                                                }
+                                                else
+                                                {
+                                                    <div class="no-image-placeholder" style="height: 180px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; opacity: 0.7;">
+                                                        <i class="bi bi-image text-muted fs-1"></i>
+                                                    </div>
+                                                }
+                                            </div>
+
+                                            <!-- Product Details -->
+                                            <div class="card-body">
+                                                <h5 class="card-title text-muted">@product.ProductName</h5>
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span class="text-muted">₹@product.ProductPrice</span>
+                                                    <span class="text-muted">
+                                                        @product.ProductStock in stock
+                                                    </span>
+                                                </div>
+                                                <small class="text-muted d-block mb-2">SKU: @(product.Sku ?? "N/A")</small>
+
+                                                <!-- Action Buttons for Removed Products -->
+                                                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                                                    <form asp-action="RestoreProduct" method="post">
+                                                        <input type="hidden" name="id" value="@product.ProductId" />
+                                                        <button type="submit" class="btn btn-sm btn-success me-md-2">
+                                                            <i class="bi bi-arrow-counterclockwise"></i> Restore
+                                                        </button>
+                                                    </form>
+                                                    <button class="btn btn-sm btn-outline-danger delete-btn"
+                                                            data-id="@product.ProductId"
+                                                            data-name="@product.ProductName">
+                                                        <i class="bi bi-trash"></i> Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <!-- Active Products Section -->
+                        @if (!activeProducts.Any())
+                        {
+                            <div class="text-center py-5">
+                                <i class="bi bi-box-seam fs-1 text-muted"></i>
+                                <h5 class="mt-3">No products found</h5>
+                                <a asp-action="AddEditProduct" class="btn btn-primary mt-2">
+                                    Add Your First Product
+                                </a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row g-4">
+                                @foreach (var product in activeProducts)
+                                {
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                        <div class="card product-card h-100 shadow-sm position-relative">
+                                            <!-- Product Image -->
+                                            <div class="product-image-container">
+                                                @if (!string.IsNullOrEmpty(product.ProductImage1))
+                                                {
+                                                    <img src="@product.ProductImage1" class="card-img-top"
+                                                         alt="@product.ProductName"
+                                                         style="height: 180px; object-fit: cover;">
+                                                }
+                                                else
+                                                {
+                                                    <div class="no-image-placeholder" style="height: 180px; background: #f5f5f5; display: flex; align-items: center; justify-content: center;">
+                                                        <i class="bi bi-image text-muted fs-1"></i>
+                                                    </div>
+                                                }
+                                                @if (product.ProductStock <= (product.ReorderLevel ?? 0))
+                                                {
+                                                    <span class="badge bg-danger position-absolute top-0 start-0 m-2">
+                                                        Low Stock
+                                                    </span>
+                                                }
+                                            </div>
+
+                                            <!-- Product Details -->
+                                            <div class="card-body">
+                                                <h5 class="card-title">@product.ProductName</h5>
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span class="text-success fw-bold">₹@product.ProductPrice</span>
+                                                    <span class="@(product.ProductStock > 0 ? "text-primary" : "text-danger")">
+                                                        @(product.ProductStock > 0 ? $"{product.ProductStock} in stock" : "Out of stock")
+                                                    </span>
+                                                </div>
+                                                <small class="text-muted d-block mb-2">SKU: @(product.Sku ?? "N/A")</small>
+
+                                                <!-- Action Buttons -->
+                                                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                                                    <a asp-action="GetProductById" asp-route-id="@product.ProductId"
+                                                       class="btn btn-sm btn-outline-primary me-md-2">
+                                                        <i class="bi bi-eye"></i> Details
+                                                    </a>
+                                                    <a asp-action="AddEditProduct" asp-route-id="@product.ProductId"
+                                                       class="btn btn-sm btn-outline-primary me-md-2">
+                                                        <i class="bi bi-pencil"></i> Edit
+                                                    </a>
+                                                    <button class="btn btn-sm btn-outline-warning remove-btn"
+                                                            data-id="@product.ProductId"
+                                                            data-name="@product.ProductName">
+                                                        <i class="bi bi-archive"></i> Remove
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Remove Confirmation Modal -->
+<div class="modal fade" id="removeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Confirm Removal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove <strong id="removeProductNameText"></strong>?</p>
+                <p class="text-muted small">This product will be hidden from customers but can be restored later.</p>
+            </div>
+            <form id="removeForm" asp-controller="Product" asp-action="ToggleProductStatus" method="post">
+                <input type="hidden" id="removeProductId" name="id" value="" />
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Remove</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirm Permanent Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to permanently delete <strong id="productNameText"></strong>?</p>
+                <p class="text-muted small">This action cannot be undone and will permanently remove the product from the database.</p>
+            </div>
+            <form id="deleteForm" asp-controller="Product" asp-action="DeleteProduct" method="post">
+                <input type="hidden" id="deleteProductId" name="id" value="" />
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete Permanently</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Success Toasts -->
+@if (showToast)
+{
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header bg-success text-white">
+                <strong class="me-auto">Success</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Product deleted successfully!
+            </div>
+        </div>
+    </div>
+}
+
+@if (showRestoreToast)
+{
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header bg-success text-white">
+                <strong class="me-auto">Success</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                @TempData["Success"]
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Remove confirmation modal
+            $('.remove-btn').click(function () {
+                var productId = $(this).data('id');
+                var productName = $(this).data('name');
+
+                $('#removeProductNameText').text(productName);
+                $('#removeProductId').val(productId);
+
+                var removeModal = new bootstrap.Modal(document.getElementById('removeModal'));
+                removeModal.show();
+            });
+
+            // Delete confirmation modal
+            $('.delete-btn').click(function () {
+                var productId = $(this).data('id');
+                var productName = $(this).data('name');
+
+                $('#productNameText').text(productName);
+                $('#deleteProductId').val(productId);
+
+                var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+                deleteModal.show();
+            });
+
+            // Auto-hide toasts after 5 seconds
+            if (@showToast.ToString().ToLower()) {
+                setTimeout(function() {
+                    $('.toast').toast('hide');
+                }, 5000);
+            }
+
+            if (@showRestoreToast.ToString().ToLower()) {
+                setTimeout(function() {
+                    $('.toast').toast('hide');
+                }, 5000);
+            }
+        });
+    </script>
+}

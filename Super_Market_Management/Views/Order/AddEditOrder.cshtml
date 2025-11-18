@@ -1,0 +1,159 @@
+﻿@model Super_Market_Management.Models.Order
+@{
+    ViewData["Title"] = Model.OrderId == 0 ? "Create Order" : "Edit Order";
+}
+
+<div class="container">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">
+                <i class="bi bi-cart-plus"></i> @ViewData["Title"]
+            </h3>
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Save" method="post">
+                <input type="hidden" asp-for="OrderId" />
+                <input type="hidden" asp-for="CreationDate" />
+                <input type="hidden" asp-for="ModifyDate" />
+                <input type="hidden" asp-for="UserId" />
+
+                <div class="row g-3">
+                    <!-- Customer Information -->
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2 mb-3">Customer Information</h5>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="CustomerId" class="form-label">Customer</label>
+                        <select asp-for="CustomerId" class="form-select"
+                                asp-items="@(Model.Customerlist != null ? new SelectList(Model.Customerlist, "CustomerId", "Name") : new SelectList(Enumerable.Empty<SelectListItem>()))">
+                            <option value="">-- Select Customer --</option>
+                        </select>
+                        <span asp-validation-for="CustomerId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="SalesPersonId" class="form-label">Sales Person</label>
+                        <select asp-for="SalesPersonId" class="form-select"
+                                asp-items="@(new SelectList(Model.Userlist, "UserId", "UserName"))">
+                            <option value="">-- Select Sales Person --</option>
+                        </select>
+                        <span asp-validation-for="SalesPersonId" class="text-danger"></span>
+                    </div>
+
+                    <!-- Order Details -->
+                    <div class="col-12 mt-4">
+                        <h5 class="border-bottom pb-2 mb-3">Order Details</h5>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="OrderDate" class="form-label">Order Date</label>
+                        <input asp-for="OrderDate" type="datetime-local" class="form-control" required />
+                        <span asp-validation-for="OrderDate" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Status" class="form-label">Order Status</label>
+                        <select asp-for="Status" class="form-select" required>
+                            <option value="Pending">Pending</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+
+                    <!-- Financial Information -->
+                    <div class="col-12 mt-4">
+                        <h5 class="border-bottom pb-2 mb-3">Financial Information</h5>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="TotalPrice" class="form-label">Subtotal</label>
+                        <input asp-for="TotalPrice" class="form-control" type="number" step="0.01" required />
+                        <span asp-validation-for="TotalPrice" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="TaxAmount" class="form-label">Tax Amount</label>
+                        <input asp-for="TaxAmount" class="form-control" type="number" step="0.01" />
+                        <span asp-validation-for="TaxAmount" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="DiscountAmount" class="form-label">Discount Amount</label>
+                        <input asp-for="DiscountAmount" class="form-control" type="number" step="0.01" />
+                        <span asp-validation-for="DiscountAmount" class="text-danger"></span>
+                    </div>
+
+                    <!-- Payment Information -->
+                    <div class="col-12 mt-4">
+                        <h5 class="border-bottom pb-2 mb-3">Payment Information</h5>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="PaymentMethod" class="form-label">Payment Method</label>
+                        <select asp-for="PaymentMethod" class="form-select">
+                            <option value="">-- Select Payment Method --</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Debit Card">Debit Card</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Digital Wallet">Digital Wallet</option>
+                        </select>
+                        <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="OrderNumber" class="form-label">Order Number</label>
+                        <input asp-for="OrderNumber" class="form-control" required />
+                        <span asp-validation-for="OrderNumber" class="text-danger"></span>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="col-12">
+                        <label asp-for="Notes" class="form-label">Order Notes</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Notes" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="mt-4 pt-3 border-top">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-save"></i> Save Order
+                    </button>
+                    <a asp-action="GetAllOrder" class="btn btn-outline-secondary ms-2">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function() {
+            // Auto-generate order number if empty
+            if ($('#OrderNumber').val() === '' && @Model.OrderId == 0) {
+                const now = new Date();
+                const orderNumber = 'ORD-' + now.getFullYear() +
+                                    (now.getMonth() + 1).toString().padStart(2, '0') +
+                                    now.getDate().toString().padStart(2, '0') + '-' +
+                                    Math.floor(1000 + Math.random() * 9000);
+                $('#OrderNumber').val(orderNumber);
+            }
+
+            // Set current datetime if new order
+            if (@Model.OrderId == 0) {
+                const now = new Date();
+                const formattedDateTime = now.toISOString().slice(0, 16);
+                $('#OrderDate').val(formattedDateTime);
+            }
+        });
+    </script>
+}

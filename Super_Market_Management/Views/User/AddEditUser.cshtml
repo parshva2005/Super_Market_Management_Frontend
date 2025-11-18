@@ -1,0 +1,155 @@
+﻿@model Super_Market_Management.Models.User
+@{
+    ViewBag.Title = Model?.UserId == 0 ? "Add User" : "Edit User";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">
+                <i class="bi bi-person-plus"></i> @ViewBag.Title
+            </h3>
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Save" asp-controller="User" method="post" id="userForm">
+                <input type="hidden" asp-for="UserId" />
+
+                <div class="row g-3">
+                    <!-- Basic Information Section -->
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="UserName" class="form-label">Full Name</label>
+                        <input asp-for="UserName" class="form-control" />
+                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="UserEmailAddress" class="form-label">Email Address</label>
+                        <input asp-for="UserEmailAddress" type="email" class="form-control" />
+                        <span asp-validation-for="UserEmailAddress" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="UserMobileNumber" class="form-label">Mobile Number</label>
+                        <input asp-for="UserMobileNumber" class="form-control" />
+                        <span asp-validation-for="UserMobileNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="UserAddress" class="form-label">Address</label>
+                        <input asp-for="UserAddress" class="form-control" />
+                        <span asp-validation-for="UserAddress" class="text-danger"></span>
+                    </div>
+
+                    <!-- Account Settings Section -->
+                    <div class="col-12 mt-4">
+                        <h5 class="border-bottom pb-2 mb-3">Account Settings</h5>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="RoleId" class="form-label">User Role</label>
+                        <select asp-for="RoleId" class="form-select">
+                            @foreach (var item in Model.Rolelist)
+                            {
+                                <option value="@item.RoleId">@item.RoleName</option>
+                            }
+                            <option value="" disabled selected>-- Select Role --</option>
+                        </select>
+                        <span asp-validation-for="RoleId" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="IsActive" class="form-label">Account Status</label>
+                        <select asp-for="IsActive" class="form-select">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                        <span asp-validation-for="IsActive" class="text-danger"></span>
+                    </div>
+
+                    <!-- Password Section -->
+                    <div class="col-12 mt-4">
+                        <h5 class="border-bottom pb-2 mb-3">Password</h5>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <input asp-for="Password" type="password" class="form-control"
+                                   autocomplete="new-password" />
+                            <button class="btn btn-outline-secondary toggle-password" type="button">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                        <div class="input-group">
+                            <input asp-for="ConfirmPassword" type="password" class="form-control"
+                                   autocomplete="new-password" />
+                            <button class="btn btn-outline-secondary toggle-password" type="button">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="mt-4 pt-3 border-top">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-save"></i> @ViewBag.Title
+                    </button>
+                    <a asp-action="GetAllUser" class="btn btn-outline-secondary ms-2">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function() {
+            // Password toggle functionality
+            $('.toggle-password').click(function() {
+                const input = $(this).siblings('input');
+                const icon = $(this).find('i');
+                const type = input.attr('type') === 'password' ? 'text' : 'password';
+                input.attr('type', type);
+                icon.toggleClass('bi-eye bi-eye-slash');
+            });
+
+            // Handle API validation errors
+            $(document).ajaxError(function(event, jqxhr) {
+                if (jqxhr.status === 400) {
+                    const response = JSON.parse(jqxhr.responseText);
+                    if (response.errors) {
+                        // Clear previous errors
+                        $('.text-danger').text('');
+
+                        // Display new errors
+                        $.each(response.errors, function(key, errors) {
+                            const element = $('[data-valmsg-for="' + key + '"]');
+                            if (element.length) {
+                                element.text(errors.join(', '));
+                            }
+                        });
+                    }
+                }
+            });
+
+            // Form submission handling
+            $('#userForm').submit(function(e) {
+            });
+        });
+    </script>
+}

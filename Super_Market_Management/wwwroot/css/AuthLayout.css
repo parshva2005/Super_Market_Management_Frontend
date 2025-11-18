@@ -1,0 +1,224 @@
+﻿/* Auth Layout Styles */
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --success-color: #4bb543;
+    --danger-color: #ff3333;
+    --warning-color: #ffcc00;
+    --border-radius: 15px;
+    --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+/* Base Styles */
+/* Update these styles in your AuthLayout.css */
+
+/* Base Styles */
+body.auth-layout {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f5f7fb;
+    min-height: 100vh; /* changed from height to min-height */
+    display: flex;
+    align-items: center;
+    justify-content: center; /* added to center horizontally */
+    margin: 0;
+    padding: 0;
+    color: var(--dark-color);
+    line-height: 1.6;
+}
+
+/* Container Styles - Simplify this */
+.auth-container {
+    width: 100%;
+    padding: 20px;
+}
+
+/* Card Styles - Add margin auto for horizontal centering */
+.auth-card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto; /* This centers the card */
+    transition: var(--transition);
+}
+    .auth-card:hover {
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+
+/* Header Styles */
+.auth-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+    .auth-header h2 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.8rem;
+    }
+
+    .auth-header p {
+        margin: 0.5rem 0 0;
+        opacity: 0.9;
+        font-weight: 300;
+    }
+
+    .auth-header i {
+        margin-right: 10px;
+    }
+
+/* Body Styles */
+.auth-body {
+    padding: 2rem;
+    background-color: white;
+}
+
+/* Form Styles */
+.auth-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+/* Input Styles */
+.input-icon {
+    position: relative;
+}
+
+    .input-icon i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        z-index: 2;
+    }
+
+    .input-icon input,
+    .input-icon textarea {
+        padding-left: 45px !important;
+        position: relative;
+        z-index: 1;
+    }
+
+.form-control {
+    height: 50px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+    .form-control:focus {
+        box-shadow: none;
+        border-color: var(--primary-color);
+    }
+
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Button Styles */
+.btn-auth {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    height: 50px;
+    border-radius: 8px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: white;
+    text-transform: uppercase;
+    transition: var(--transition);
+}
+
+    .btn-auth:hover {
+        opacity: 0.9;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-auth i {
+        margin-right: 8px;
+    }
+
+/* Footer Styles */
+.auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+    .auth-footer a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+
+        .auth-footer a:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+
+/* Alert Styles */
+.alert-auth {
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: none;
+    color: white;
+}
+
+.alert-danger {
+    background-color: var(--danger-color);
+}
+
+.alert-success {
+    background-color: var(--success-color);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 576px) {
+    .auth-body {
+        padding: 1.5rem;
+    }
+
+    .auth-header {
+        padding: 1.5rem;
+    }
+
+    .form-control {
+        height: 45px;
+    }
+
+    .btn-auth {
+        height: 45px;
+    }
+}
+
+/* Utility Classes */
+.text-center {
+    text-align: center;
+}
+
+.mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.float-end {
+    float: right;
+}

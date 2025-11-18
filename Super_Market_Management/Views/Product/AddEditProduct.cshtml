@@ -1,0 +1,202 @@
+﻿@model Super_Market_Management.Models.Product
+@{
+    ViewBag.Title = Model.ProductId == 0 ? "Add Product" : "Edit Product";
+}
+
+<div class="container dark-section mt-5">
+    <h2 class="mb-4">@ViewBag.Title</h2>
+
+    <form asp-action="Save" asp-controller="Product" method="post">
+        <input type="hidden" asp-for="ProductId" />
+        <input type="hidden" asp-for="UserId" value="@Context.Session.GetInt32("UserId")" />
+
+        <div class="row g-3">
+            <!-- Basic Information -->
+            <div class="col-md-6">
+                <label asp-for="CategoryId" class="form-label">Category</label>
+                <select asp-for="CategoryId" class="form-select" asp-items="@(new SelectList(Model.Categorylist, "CategoryId", "CategoryName"))">
+                    <option value="">-- Select Category --</option>
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="ProductName" class="form-label">Product Name</label>
+                <input asp-for="ProductName" class="form-control" />
+                <span asp-validation-for="ProductName" class="text-danger"></span>
+            </div>
+
+            <!-- Pricing & Inventory -->
+            <div class="col-md-4">
+                <label asp-for="ProductPrice" class="form-label">Price (₹)</label>
+                <input asp-for="ProductPrice" class="form-control" type="number" step="0.01" />
+                <span asp-validation-for="ProductPrice" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="CostPrice" class="form-label">Cost Price (₹)</label>
+                <input asp-for="CostPrice" class="form-control" type="number" step="0.01" />
+                <span asp-validation-for="CostPrice" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="ProductStock" class="form-label">Stock</label>
+                <input asp-for="ProductStock" class="form-control" type="number" />
+                <span asp-validation-for="ProductStock" class="text-danger"></span>
+            </div>
+
+            <!-- SKU & Barcode -->
+            <div class="col-md-6">
+                <label asp-for="Sku" class="form-label">SKU</label>
+                <input asp-for="Sku" class="form-control" />
+                <span asp-validation-for="Sku" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Barcode" class="form-label">Barcode</label>
+                <input asp-for="Barcode" class="form-control" />
+                <span asp-validation-for="Barcode" class="text-danger"></span>
+            </div>
+
+            <!-- Description -->
+            <div class="col-12">
+                <label asp-for="ProductDescription" class="form-label">Description</label>
+                <textarea asp-for="ProductDescription" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="ProductDescription" class="text-danger"></span>
+            </div>
+
+            <!-- Image URLs -->
+            <div class="col-12">
+                <h5 class="mt-4">Product Images</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="ProductImage1" class="form-label">Image URL 1 (Primary)</label>
+                        <input asp-for="ProductImage1" class="form-control" placeholder="https://example.com/image1.jpg" />
+                        <span asp-validation-for="ProductImage1" class="text-danger"></span>
+                        @if (!string.IsNullOrEmpty(Model.ProductImage1))
+                        {
+                            <div class="mt-2">
+                                <img src="@Model.ProductImage1" alt="Product Image 1" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;" />
+                            </div>
+                        }
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="ProductImage2" class="form-label">Image URL 2</label>
+                        <input asp-for="ProductImage2" class="form-control" placeholder="https://example.com/image2.jpg" />
+                        <span asp-validation-for="ProductImage2" class="text-danger"></span>
+                        @if (!string.IsNullOrEmpty(Model.ProductImage2))
+                        {
+                            <div class="mt-2">
+                                <img src="@Model.ProductImage2" alt="Product Image 2" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;" />
+                            </div>
+                        }
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="ProductImage3" class="form-label">Image URL 3</label>
+                        <input asp-for="ProductImage3" class="form-control" placeholder="https://example.com/image3.jpg" />
+                        <span asp-validation-for="ProductImage3" class="text-danger"></span>
+                        @if (!string.IsNullOrEmpty(Model.ProductImage3))
+                        {
+                            <div class="mt-2">
+                                <img src="@Model.ProductImage3" alt="Product Image 3" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;" />
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Details Accordion -->
+            <div class="col-12 mt-4">
+                <div class="accordion" id="productDetailsAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFeatures">
+                                Additional Features
+                            </button>
+                        </h2>
+                        <div id="collapseFeatures" class="accordion-collapse collapse show" data-bs-parent="#productDetailsAccordion">
+                            <div class="accordion-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label asp-for="ProductFeatures" class="form-label">Features</label>
+                                        <textarea asp-for="ProductFeatures" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="ProductSpecifications" class="form-label">Specifications</label>
+                                        <textarea asp-for="ProductSpecifications" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="ProductIngredients" class="form-label">Ingredients</label>
+                                        <textarea asp-for="ProductIngredients" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="ProductUsageInstructions" class="form-label">Usage Instructions</label>
+                                        <textarea asp-for="ProductUsageInstructions" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="ProductWarrantyInformation" class="form-label">Warranty Information</label>
+                                        <textarea asp-for="ProductWarrantyInformation" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="ProductAdditionalInformation" class="form-label">Additional Information</label>
+                                        <textarea asp-for="ProductAdditionalInformation" class="form-control" rows="3"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Settings -->
+            <div class="col-md-6">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" asp-for="TrackInventory" />
+                    <label class="form-check-label" asp-for="TrackInventory">Track Inventory</label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ReorderLevel" class="form-label">Reorder Level</label>
+                <input asp-for="ReorderLevel" class="form-control" type="number" />
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">@ViewBag.Title</button>
+            <a asp-action="GetAllProduct" class="btn btn-secondary ms-2">Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Image preview functionality
+        $(document).ready(function() {
+            $('input[type="url"]').on('input', function() {
+                const url = $(this).val();
+                const container = $(this).closest('.col-md-4');
+                const preview = container.find('img');
+
+                if (url && isValidUrl(url)) {
+                    preview.attr('src', url);
+                    if (!preview.is(':visible')) {
+                        preview.parent().show();
+                    }
+                } else {
+                    preview.parent().hide();
+                }
+            });
+
+            function isValidUrl(string) {
+                try {
+                    new URL(string);
+                    return true;
+                } catch (_) {
+                    return false;
+                }
+            }
+        });
+    </script>
+}

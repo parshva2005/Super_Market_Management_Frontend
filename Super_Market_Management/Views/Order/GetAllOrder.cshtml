@@ -1,0 +1,160 @@
+﻿@model List<Super_Market_Management.Models.Order>
+@{
+    ViewData["Title"] = "Order Management";
+    var showToast = TempData["DeleteSuccess"] != null && (bool)TempData["DeleteSuccess"];
+}
+
+<div class="container-fluid">
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-cart-check text-primary"></i> @ViewData["Title"]
+            </h1>
+            <p class="text-muted mb-0">Showing @Model.Count orders</p>
+        </div>
+        <div>
+            <a asp-controller="Order" asp-action="AddEditOrder" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Create New Order
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-cart-x text-muted fs-1"></i>
+                    <h4 class="mt-3">No Orders Found</h4>
+                    <p class="text-muted">Click the button above to create your first order</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Order #</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Sales Person</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-controller="OrderItem" asp-action="Index" asp-route-orderId="@order.OrderId"
+                                           class="text-decoration-none">
+                                            @order.OrderNumber
+                                        </a>
+                                    </td>
+                                    <td>@order.OrderDate.ToString("d")</td>
+                                    <td>@order.Customer?.Name</td>
+                                    <td>@order.SalesPerson?.UserName</td>
+                                    <td>
+                                        <span class="badge bg-@(order.Status == "Completed" ? "success" : order.Status == "Pending" ? "warning" : "secondary")">
+                                    @order.Status
+                                </span>
+                            </td>
+                            <td>@order.TotalPrice.ToString("C")</td>
+                            <td>
+
+                                <div class="d-flex gap-2">
+                                     <a asp-controller="OrderItem" asp-action="Index" asp-route-orderId="@order.OrderId"
+                                        class="btn btn-sm btn-outline-primary me-md-2">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
+                                    <a asp-action="AddEditOrder" asp-route-id="@order.OrderId"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-danger delete-btn"
+                                            data-id="@order.OrderId"
+                                            data-name="Order @order.OrderNumber">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                                                }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirm Order Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="orderNameText"></strong>?</p>
+                <div class="alert alert-warning mt-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    This action will permanently remove the order and all its items.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a id="confirmDeleteBtn" href="#" class="btn btn-danger">
+                    <i class="bi bi-trash-fill me-1"></i> Confirm Delete
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+@if (showToast)
+{
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="deleteToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    Order deleted successfully!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Delete confirmation modal
+            $('.delete-btn').click(function() {
+                const orderId = $(this).data('id');
+                const orderName = $(this).data('name');
+
+                $('#orderNameText').text(orderName);
+                $('#confirmDeleteBtn').attr('href', `/Order/DeleteOrder/${orderId}`);
+
+                new bootstrap.Modal(document.getElementById('deleteModal')).show();
+            });
+
+            // Auto-hide toast after 5 seconds
+            if (@showToast.ToString().ToLower()) {
+                const toast = new bootstrap.Toast(document.getElementById('deleteToast'));
+                toast.show();
+
+                setTimeout(() => {
+                    toast.hide();
+                }, 5000);
+            }
+        });
+    </script>
+}

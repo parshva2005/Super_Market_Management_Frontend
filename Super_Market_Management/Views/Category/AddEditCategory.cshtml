@@ -1,0 +1,209 @@
+﻿@model Super_Market_Management.Models.Category
+@{
+    ViewBag.Title = Model.CategoryId == 0 ? "Add New Category" : "Edit Category";
+    var showToast = TempData["OperationSuccess"] != null && (bool)TempData["OperationSuccess"];
+    var toastMessage = TempData["ToastMessage"] as string;
+    var isEditMode = Model.CategoryId != 0;
+}
+
+<div class="container dark-section mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h5 mb-0">
+                <i class="bi @(isEditMode ? "bi-pencil-square" : "bi-plus-circle") me-2"></i>
+                @ViewBag.Title
+            </h2>
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Save" asp-controller="Category" method="post" class="needs-validation" novalidate>
+                <input type="hidden" asp-for="CategoryId" />
+                <input type="hidden" asp-for="CreationDate" />
+
+                <!-- Form Sections -->
+                <div class="row g-3">
+                    <!-- Basic Information Section -->
+                    <div class="col-md-8">
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Basic Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Category Name -->
+                                <div class="mb-3">
+                                    <label asp-for="CategoryName" class="form-label">
+                                        <i class="bi bi-tag-fill text-primary me-2"></i>Category Name
+                                    </label>
+                                    <input asp-for="CategoryName" class="form-control" required />
+                                    <span asp-validation-for="CategoryName" class="text-danger"></span>
+                                    <div class="invalid-feedback">Please provide a category name.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Management Section -->
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Management</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Status -->
+                                <div class="mb-3">
+                                    <label asp-for="IsRemoved" class="form-label">
+                                        <i class="bi bi-eye-fill text-primary me-2"></i>Status
+                                    </label>
+                                    <select asp-for="IsRemoved" class="form-select">
+                                        <option value="false">Active</option>
+                                        <option value="true">Archived</option>
+                                    </select>
+                                    <span asp-validation-for="IsRemoved" class="text-danger"></span>
+                                </div>
+
+                                <!-- Assigned User -->
+                                <div class="mb-3">
+                                    <label asp-for="UserId" class="form-label">
+                                        <i class="bi bi-person-fill text-primary me-2"></i>Responsible User
+                                    </label>
+                                    <select asp-for="UserId" class="form-select" asp-items="@(new SelectList(Model.Userlist, "UserId", "UserName"))" required>
+                                        <option value="">-- Select User --</option>
+                                    </select>
+                                    <span asp-validation-for="UserId" class="text-danger"></span>
+                                    <div class="invalid-feedback">Please select a responsible user.</div>
+                                </div>
+
+                                <!-- Creation/Modification Info -->
+                                @if (isEditMode)
+                                {
+                                    <div class="border-top pt-3 mt-3">
+                                        <div class="small text-muted">
+                                            <div>
+                                                <i class="bi bi-calendar-plus me-1"></i>
+                                                Created: @Model.CreationDate?.ToString("dd MMM yyyy HH:mm")
+                                            </div>
+                                            @if (Model.ModifyDate.HasValue)
+                                            {
+                                                <div>
+                                                    <i class="bi bi-calendar-check me-1"></i>
+                                                    Last Modified: @Model.ModifyDate.Value.ToString("dd MMM yyyy HH:mm")
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div>
+                        <a asp-action="GetAllCategory" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Back to List
+                        </a>
+
+                        @if (isEditMode)
+                        {
+                            <button type="button" class="btn btn-outline-danger ms-2 delete-btn"
+                                    data-id="@Model.CategoryId"
+                                    data-name="@Model.CategoryName"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteConfirmModal">
+                                <i class="bi bi-trash me-1"></i> Delete
+                            </button>
+                        }
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi @(isEditMode ? "bi-check-circle" : "bi-plus-circle") me-1"></i>
+                        @(isEditMode ? "Update Category" : "Create Category")
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteModalText">Are you sure you want to delete this category?</p>
+                <div class="alert alert-warning mt-2">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    This action cannot be undone. All products in this category will be moved to "Uncategorized".
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="confirmDeleteBtn" class="btn btn-danger">
+                    <i class="bi bi-trash me-1"></i> Delete Permanently
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+    <div id="operationToast" class="toast text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span id="toastMessage">@toastMessage</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Delete Confirmation
+            const deleteBtn = document.querySelector(".delete-btn");
+            if (deleteBtn) {
+                deleteBtn.addEventListener("click", function () {
+                    const categoryId = this.getAttribute("data-id");
+                    const categoryName = this.getAttribute("data-name");
+
+                    document.getElementById('deleteModalText').innerHTML =
+                        `Are you sure you want to delete <strong>${categoryName}</strong>?`;
+                    document.getElementById('confirmDeleteBtn').setAttribute("href",
+                        `/Category/DeleteCategory/${categoryId}`);
+                });
+            }
+
+            // Form Validation
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+
+            // Toast Notification
+            const toastEl = document.getElementById("operationToast");
+            if (toastEl && '@showToast' === 'True') {
+                const toast = new bootstrap.Toast(toastEl);
+                toast.show();
+
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    toast.hide();
+                }, 5000);
+            }
+        });
+    </script>
+}

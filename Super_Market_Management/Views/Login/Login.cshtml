@@ -1,0 +1,58 @@
+﻿@model SMM_API.Models.LoginRequest
+@{
+    ViewData["Title"] = "Login";
+    Layout = "_LayoutAuth"; 
+}
+
+
+
+<div class="auth-card">
+    <div class="auth-header">
+        <h2><i class="fas fa-store me-2"></i> Supermarket</h2>
+        <p class="mb-0">Please sign in to continue</p>
+    </div>
+
+    <div class="auth-body">
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                @ViewBag.Error
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <form asp-action="Login">
+            <div class="mb-3 input-icon">
+                <i class="fas fa-envelope"></i>
+                <input asp-for="Email" class="form-control" placeholder="Email Address" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3 input-icon">
+                <i class="fas fa-lock"></i>
+                <input asp-for="Password" type="password" class="form-control" placeholder="Password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="rememberMe">
+                <label class="form-check-label" for="rememberMe">Remember me</label>
+                <a href="#" class="float-end">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn btn-auth w-100 text-white mb-3">
+                <i class="fas fa-sign-in-alt me-2"></i> Sign In
+            </button>
+
+            <div class="auth-footer">
+                <p>Don't have an account? <a asp-action="Register">Create one</a></p>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

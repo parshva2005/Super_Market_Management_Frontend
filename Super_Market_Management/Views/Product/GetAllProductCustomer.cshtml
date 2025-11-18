@@ -1,0 +1,264 @@
+﻿@model List<Product>
+@{
+    ViewData["Title"] = "Our Products";
+    Layout = "_LayoutCustomer";
+}
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="addedToCartToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="bi bi-cart-check text-success me-2"></i>
+            <strong class="me-auto">Success</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            Product added to cart successfully!
+        </div>
+    </div>
+</div>
+<div class="container mt-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    <!-- Filter/Sort Row -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <form id="filterForm" method="get" asp-action="GetAllProductCustomer">
+                        <div class="row align-items-center g-3">
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1">Category</label>
+                                <select class="form-select form-select-sm" name="categoryId" id="categoryFilter">
+                                    <option value="">All Categories</option>
+                                    @foreach (var category in ViewBag.Categories)
+                                    {
+                                        <option value="@category.CategoryId" selected="@(ViewBag.SelectedCategoryId?.ToString() == category.CategoryId.ToString())">
+                                            @category.CategoryName
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1">Sort By</label>
+                                <select class="form-select form-select-sm" name="sortBy" id="sortBy">
+                                    <option value="name_asc" selected="@(ViewBag.SortBy == "name_asc")">Name (A-Z)</option>
+                                    <option value="name_desc" selected="@(ViewBag.SortBy == "name_desc")">Name (Z-A)</option>
+                                    <option value="price_asc" selected="@(ViewBag.SortBy == "price_asc")">Price (Low to High)</option>
+                                    <option value="price_desc" selected="@(ViewBag.SortBy == "price_desc")">Price (High to Low)</option>
+                                    <option value="newest" selected="@(ViewBag.SortBy == "newest")">Newest First</option>
+                                    <option value="oldest" selected="@(ViewBag.SortBy == "oldest")">Oldest First</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1">Price Range</label>
+                                <select class="form-select form-select-sm" name="priceRange" id="priceFilter">
+                                    <option value="">All Prices</option>
+                                    <option value="0-50" selected="@(ViewBag.PriceRange == "0-50")">Under ₹50</option>
+                                    <option value="50-100" selected="@(ViewBag.PriceRange == "50-100")">₹50 - ₹100</option>
+                                    <option value="100-500" selected="@(ViewBag.PriceRange == "100-500")">₹100 - ₹500</option>
+                                    <option value="500-1000" selected="@(ViewBag.PriceRange == "500-1000")">₹500 - ₹1000</option>
+                                    <option value="1000+" selected="@(ViewBag.PriceRange == "1000+")">Over ₹1000</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1 d-block">Actions</label>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-filter"></i> Apply Filters
+                                    </button>
+                                    <a href="@Url.Action("GetAllProductCustomer")" class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-x-circle"></i> Clear
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hidden search field -->
+                        <input type="hidden" name="searchTerm" id="hiddenSearchTerm" value="@ViewBag.SearchTerm" />
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="h4 mb-0">Our Products</h2>
+            <p class="text-muted mb-0">Showing @Model.Count products</p>
+        </div>
+        <div class="col-md-6">
+            <form method="get" asp-action="GetAllProductCustomer">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search products..."
+                           name="searchTerm" value="@ViewBag.SearchTerm" id="searchInput">
+                    <button class="btn btn-primary" type="submit" id="searchButton">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+                <!-- Keep existing filters -->
+                <input type="hidden" name="categoryId" value="@ViewBag.SelectedCategoryId" />
+                <input type="hidden" name="sortBy" value="@ViewBag.SortBy" />
+                <input type="hidden" name="priceRange" value="@ViewBag.PriceRange" />
+            </form>
+        </div>
+    </div>
+    <!-- Add loading spinner -->
+    <div id="loadingSpinner" class="text-center py-3" style="display: none;">
+        <div class="loading-spinner mx-auto"></div>
+        <p class="text-muted mt-2">Loading products...</p>
+    </div>
+    <!-- Product Grid -->
+    <div class="row g-4" id="productGrid">
+        @foreach (var product in Model)
+        {
+            <div class="col-md-6 col-lg-4 col-xl-3">
+                <div class="card product-card h-100">
+                    <!-- Clickable Image Area -->
+                    <a asp-action="GetProductById" asp-route-id="@product.ProductId" class="text-decoration-none">
+                        <div class="product-image-container position-relative" style="height: 200px; overflow: hidden;">
+                            @if (!string.IsNullOrEmpty(product.ProductImage1))
+                            {
+                                <img src="@product.ProductImage1"
+                                     class="card-img-top"
+                                     alt="@product.ProductName"
+                                     loading="lazy"
+                                     style="width: 100%; height: 100%; object-fit: cover;"
+                                     onload="this.style.opacity='1'"
+                                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmOWZhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0jOTk5OTk5IHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='">
+                            }
+                            else
+                            {
+                                <div class="no-image-placeholder d-flex align-items-center justify-content-center h-100" style="background-color: #f8f9fa;">
+                                    <i class="bi bi-image fs-1 text-muted"></i>
+                                </div>
+                            }
+                            @if (product.ProductStock <= (product.ReorderLevel ?? 0))
+                            {
+                                <span class="badge bg-danger position-absolute top-0 start-0 m-2">Low Stock</span>
+                            }
+                        </div>
+                    </a>
+
+                    <!-- Product Body -->
+                    <a asp-action="GetProductById" asp-route-id="@product.ProductId" class="text-decoration-none text-dark">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">@product.ProductName</h5>
+                                <span class="badge bg-primary">@product.Category?.CategoryName</span>
+                            </div>
+                            <p class="card-text text-muted small mb-2 line-clamp-2">@product.ProductDescription</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="text-success mb-0">₹@product.ProductPrice</h5>
+                                @if (product.CostPrice.HasValue)
+                                {
+                                    <small class="text-muted text-decoration-line-through">₹@product.CostPrice.Value</small>
+                                }
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Product Footer -->
+                    <div class="card-footer bg-white border-0 pt-0">
+                        <div class="product-actions position-absolute top-0 end-0 m-2">
+                            <button class="btn btn-sm btn-light rounded-circle shadow-sm" title="Add to wishlist">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            @if (Context.Session.GetString("UserRole") == "Customer")
+                            {
+                                <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-inline">
+                                    <input type="hidden" name="productId" value="@product.ProductId" />
+                                    <input type="hidden" name="quantity" value="1" />
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-cart-plus"></i> Add to Cart
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <a class="btn btn-primary btn-sm" asp-controller="Login" asp-action="Login">
+                                    <i class="bi bi-box-arrow-in-right"></i> Login to Purchase
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    <nav class="mt-5">
+        <ul class="pagination justify-content-center">
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+                <a class="page-link" href="#">Next</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Load initial cart count
+            loadCartCount();
+
+            // Function to load cart count
+            function loadCartCount() {
+                $.get('@Url.Action("GetCartCount", "Cart")', function(data) {
+                    updateCartCount(data);
+                });
+            }
+
+            // Function to update cart count
+            function updateCartCount(count) {
+                $('.badge.bg-danger').text(count);
+            }
+
+            // Lazy load images with Intersection Observer if supported
+            if ('IntersectionObserver' in window) {
+                const lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+                    entries.forEach(function(entry) {
+                        if (entry.isIntersecting) {
+                            const lazyImage = entry.target;
+                            lazyImage.src = lazyImage.dataset.src;
+                            lazyImage.classList.remove('lazy');
+                            lazyImageObserver.unobserve(lazyImage);
+                        }
+                    });
+                });
+
+                document.querySelectorAll('img[loading="lazy"]').forEach(function(img) {
+                    img.dataset.src = img.src;
+                    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmOWZhIi8+PC9zdmc+';
+                    lazyImageObserver.observe(img);
+                });
+            }
+        });
+    </script>
+}
